@@ -2,6 +2,15 @@ import discord
 from discord.ext import commands
 import youtube_dl
 import asyncio
+from discord.utils import get
+import config
+import os
+
+# словари
+hello_words = ['hello', 'hi', 'привет', 'privet', 'ky', 'ку', 'q', 'qq', 'здарова',
+               'здорова', 'здраствуй', 'здравствуйте']
+goodbye_words = ['пока', 'bb', 'poka', 'bb all', 'всем пока', 'пока всем', 'bye', 'goodbye', 'bye bye', 'до скорого',
+                 'до встречи', 'увидимся', 'услышимся']
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
@@ -53,13 +62,34 @@ class Music(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def join(self, ctx, *, channel: discord.VoiceChannel):
-        """Бот присоединяется к голосовому чату"""
+    async def join(self, ctx):
+        channel = ctx.message.author.voice.channel
+        voice = get(bot.voice_clients, guild=ctx.guild)
 
-        if ctx.voice_client is not None:
-            return await ctx.voice_client.move_to(channel)
+        if voice and voice.is_connected():
+            await voice.move_to(channel)
+        else:
+            voice = await channel.connect()
+            await ctx.send(f'♂Billy Herrington go to the gym!♂')
 
-        await channel.connect()
+    @commands.command()
+    async def leave(self, ctx):
+        channel = ctx.message.author.voice.channel
+        voice = get(bot.voice_clients, guild=ctx.guild)
+
+        if voice and voice.is_connected():
+            await voice.disconnect()
+            await ctx.send(f'♂Thank you sir♂')
+
+    # @commands.command()
+    # async def join(self, ctx, *, channel: discord.VoiceChannel):
+    #     """Бот присоединяется к голосовому чату"""
+    #
+    #     if ctx.voice_client is not None:
+    #         return await ctx.voice_client.move_to(channel)
+    #
+    #     await channel.connect()
+    #     await ctx.send(f'♂ Billy Herrington go to the gym! ♂')
 
     @commands.command()
     async def play(self, ctx, *, query):
@@ -120,39 +150,124 @@ class Music(commands.Cog):
             ctx.voice_client.stop()
 
 
-bot = commands.Bot(command_prefix=commands.when_mentioned_or("!"))
+prefix = "!"
+bot = commands.Bot(command_prefix=commands.when_mentioned_or(prefix))
 
 
 @bot.event
-async def on_ready(message):
+async def on_ready():
     print('{0} go to the gym ({0.id})'.format(bot.user))
     print('------')
 
+    await bot.change_presence(status=discord.Status.online, activity=discord.Game('Played with his dick'))
 
-"""вот пример как я хочу совместить"""
-@bot.event
-async def on_message(ctx):
-    if 'cum' in ctx.content.lower():
-        query = '/Users/lebedevila/PycharmProjects/gachi_discordbot/sounds/Swallow my cum.mp3'
-        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(query))
-        ctx.voice_client.play(source)
 
-        await ctx.send()
-
-    await bot.process_commands(ctx)
-
-"""вот это работает"""
 @bot.event
 async def on_message(message):
-    if 'дела' in message.content.lower():
+    msg = message.content.lower()
+    if 'ass' in message.content.lower():
+        voice = get(bot.voice_clients, guild=message.guild)
+        voice.play(discord.FFmpegPCMAudio("/Users/lebedevila/PycharmProjects/gachi_discordbot/sounds/Ass we can.mp3"))
+        voice.is_playing()
+    elif 'дела' in message.content.lower():
         await message.channel.send("♂️Ass we can♂️")
-    elif 'привет' in message.content.lower():
-        await message.channel.send("♂️My fellow brothers! "
-                                   "I, Billy Herrington, stand here today, "
-                                   "humbled by the task before us, mindful "
-                                   "of the sacrifices borne by our Nico Nico ancestors♂️")
-
+    elif 'fisting' in message.content.lower():
+        voice = get(bot.voice_clients, guild=message.guild)
+        voice.play(discord.FFmpegPCMAudio("/Users/lebedevila/PycharmProjects/gachi_discordbot/sounds/Our daddy told us not to be ashamed.mp3"))
+        voice.is_playing()
+    elif 'кабачок' in message.content.lower():
+        voice = get(bot.voice_clients, guild=message.guild)
+        voice.play(
+            discord.FFmpegPCMAudio("/Users/lebedevila/PycharmProjects/gachi_discordbot/sounds/Fisting is 300 $.mp3"))
+        voice.is_playing()
+    elif msg in hello_words:
+        await message.channel.send("♂️My fellow brothers! \n"
+                                   "I, Billy Herrington, stand here today!♂️")
+        voice = get(bot.voice_clients, guild=message.guild)
+        voice.play(discord.FFmpegPCMAudio("/Users/lebedevila/PycharmProjects/gachi_discordbot/sounds/Im Billy.mp3"))
+        voice.is_playing()
+    elif msg in goodbye_words:
+        await message.channel.send("♂️I want to see one more round!♂️")
+        voice = get(bot.voice_clients, guild=message.guild)
+        voice.play(discord.FFmpegPCMAudio("/Users/lebedevila/PycharmProjects/"
+                                          "gachi_discordbot/sounds/i want to see 1 more round.mp3"))
+        voice.is_playing()
     await bot.process_commands(message)
 
+
+@bot.event
+async def on_command_error(ctx, error):
+    pass
+
+@bot.event
+async def on_member_join(member):
+    await member.send('Привет! Я Билли Хэрингтон, boss of this gym! Чтобы просмотреть команды напиши !help')
+
+    for ch in bot.get_guild(member.guild.id).channels:
+        if ch.name == 'основной':
+            await bot.get_channel(ch.id).send(f'{member}, добро пожаловать в ♂️GYM♂️')
+
+
+@bot.event
+async def on_member_remove(member):
+    for ch in bot.get_guild(member.guild.id).channels:
+        if ch.name == 'основной':
+            await bot.get_channel(ch.id).send(f'{member}, ♂️Oh fuck you letherman!♂️')
+
+
+# отчистка сообщений
+@bot.command()
+async def clear(ctx, amount: int):
+    await ctx.channel.purge(limit=amount)
+
+
+@bot.command()
+async def инфо(ctx, arg=None):
+    author = ctx.message.author
+    if arg is None:
+        await ctx.send(f'{author.mention} Введите:\n!инфо общая\n!инфо команды')
+    elif arg == 'общая':
+        await ctx.send(
+            f'{author.mention} Я Билли Хэрингтон, boss of this gym! Могу интерактивно отвечать на сообщения, '
+            f'воспроизводить музыку с YouTube, а также включать гачи ремиксы.')
+    elif arg == 'команды':
+        emb = discord.Embed(title='Навигация по командам')
+        emb.add_field(name='{}join'.format(prefix),
+                      value='Подключить бота к голосовому каналу')
+        emb.add_field(name='{}leave'.format(prefix),
+                      value='Отключить бота от голосового канала')
+        emb.add_field(name='{}play + (путь к файлу)'.format(prefix),
+                      value='Воспроизвести локальные файлы с компьютера')
+        emb.add_field(name='{}yt + (URL видео)'.format(prefix),
+                      value='Воспроизвести видео с YouTube с предварительной загрузкой')
+        emb.add_field(name='{}stream + (URL видео)'.format(prefix),
+                      value='Воспроизвести видео с YouTube')
+        emb.add_field(name='{}volume + (значение от 1 до 200)'.format(prefix),
+                      value='Регулирование громкости воспроизведения')
+        emb.add_field(name='{}stop'.format(prefix),
+                      value='Останавливает и отключает бота от голосового чата')
+        emb.add_field(name='{}clear'.format(prefix),
+                      value='Очистка чата')
+
+        await ctx.send(embed=emb)
+    else:
+        await ctx.send(f'{author.mention} Такой команды нет')
+
+
+@clear.error
+async def clear_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        voice = get(bot.voice_clients, guild=ctx.guild)
+        voice.play(discord.FFmpegPCMAudio("/Users/lebedevila/PycharmProjects/gachi_discordbot/sounds/fuck you....mp3"))
+        voice.is_playing()
+        await ctx.send(f'{ctx.author.name}, обязательно укажите число удаляемых сообщений')
+    if isinstance(error, commands.CommandNotFound):
+        voice = get(bot.voice_clients, guild=ctx.guild)
+        voice.play(discord.FFmpegPCMAudio("/Users/lebedevila/PycharmProjects/gachi_discordbot/sounds/FUCK YOU.mp3"))
+        voice.is_playing()
+        await ctx.send(f'{ctx.author.name}, такая команда отсутсвует!')
+
 bot.add_cog(Music(bot))
-bot.run('token')
+# token = open('token.txt', 'r').readline()
+# bot.run(token)
+bot.run(config.TOKEN)
